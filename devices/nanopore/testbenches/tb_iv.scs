@@ -1,0 +1,27 @@
+// Nanopore DC I-V Testbench
+// Sebastian Claudiusz Magierowski Nov 23 2024
+// DC sweep analysis
+
+simulator lang=spectre
+
+// Include the nanopore netlist
+include "../netlist/nanopore.scs"
+
+// Top-level testbench
+parameters vstart=0 vstop=1 vstep=10m
+
+// Voltage source for DC sweep
+V1 (vdd 0) vsource dc=0 type=dc
+
+// Ground reference
+V0 (0 0) vsource dc=0
+
+// Instantiate the nanopore subcircuit
+X1 (vdd 0) nanopore
+
+// DC analysis
+dc1 dc dev=V1 param=dc start=vstart stop=vstop step=vstep
+
+// Save outputs
+save X1:p X1:n
+saveOptions options save=selected

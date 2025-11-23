@@ -1,13 +1,14 @@
 // Nanopore Spectre Netlist
+// Sebastian Claudiusz Magierowski Nov 23 2024
 // Resistor and Capacitor in Parallel
 
 simulator lang=spectre
 
 // Subcircuit definition
 subckt nanopore (p n)
-    // Resistor in parallel
-    R1 (p n) resistor r=1M
+  // Resistor in parallel
+  R1 (p n) resistor r=1M
 
-    // Capacitor in parallel
-    C1 (p n) capacitor c=1p
+  // Capacitor in parallel
+  C1 (p n) capacitor c=1p
 ends nanopore

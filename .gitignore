@@ -5,6 +5,8 @@
 *.fsdb
 *.out
 *.log
+*.raw
+**/results/
 
 # Tool artifacts
 *.daidir/
@@ -46,7 +48,16 @@ ihnl/
 .specialFilesInclude
 .stimulusFiles
 .thermalNode
+*.psf
 ade_e.scs 
+
+# Virtuoso artifacts (if you import for viewing)
+*.oa
+*.oa-
+*.oa.cdslck
+.oalib
+data.dm
+master.tag
 
 # Other stuff
 DVEfiles/
