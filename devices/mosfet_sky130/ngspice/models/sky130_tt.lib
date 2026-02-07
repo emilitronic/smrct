@@ -1,0 +1,16 @@
+* Sky130 TT corner wrapper for ngspice
+* Sebastian Claudiusz Magierowski Feb 7 2026
+*
+* IMPORTANT: ngspice must be launched with ngbehavior=hsa set BEFORE
+* circuit loading. This is handled by the .spiceinit created by
+* run_dc_op.sh, or place in ~/.spiceinit:
+*   set ngbehavior=hsa
+*   set ng_nomodcheck
+*
+* HSA mode sets scale=1e-6, so W/L values are in microns (no 'u' suffix).
+*   Example: W=1 L=0.15  (means 1um x 150nm)
+*
+* PDK installed via volare:
+.param mc_mm_switch=0
+.param mc_pr_switch=0
+.lib "/Users/seb/Research/ChipStuff/Tech/Chipathon23/pdk/volare/sky130/versions/41c0908b47130d5675ff8484255b43f66463a7d6/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
