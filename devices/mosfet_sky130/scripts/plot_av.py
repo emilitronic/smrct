@@ -7,6 +7,7 @@ import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DEVICE_DIR = os.path.dirname(SCRIPT_DIR)
@@ -60,19 +61,32 @@ id_ua = data[:, 3]
 gm  = data[:, 4]
 gds = data[:, 5]
 av  = data[:, 6]
+ro  = 1.0 / (gds + 1e-30)  # output resistance in Ohms
 
 # Format L for display: use nm if < 1um
 L_str = f"{L_um*1000:.0f}\\,nm" if L_um < 1 else f"{L_um:.1f}\\,\\mu m"
 
 fig, ax = plt.subplots(figsize=(8, 5))
-ax.plot(vds, av, 'b-o', markersize=4, linewidth=1.5)
+ax.plot(vds, av, 'b-o', markersize=4, linewidth=1.5, label=r'$a_v$')
 ax.set_xlabel(r'$V_{DS}$ (V)', fontsize=13)
-ax.set_ylabel(r'Intrinsic Gain $a_v = g_m / g_{ds}$ (V/V)', fontsize=13)
+ax.set_ylabel(r'Intrinsic Gain $a_v = g_m / g_{ds}$ (V/V)', fontsize=13, color='b')
+ax.tick_params(axis='y', labelcolor='b')
 ax.set_title(
     rf'sky130 nfet_01v8   $W = {W_um:.0f}\,\mu m$,  $L = {L_str}$,  $I_D = {Id_uA:.0f}\,\mu A$',
     fontsize=12)
 ax.grid(True, alpha=0.3)
 ax.set_xlim(vds.min(), vds.max())
+ax.set_ylim(bottom=0)
+
+axr = ax.twinx()
+axr.plot(vds, ro * 1e-3, 'r-o', markersize=3, linewidth=1.5, label=r'$r_o$')
+axr.set_ylabel(r'$r_o$ (k$\Omega$)', fontsize=13, color='r')
+axr.tick_params(axis='y', labelcolor='r')
+axr.set_ylim(bottom=0)
+
+lines1, labels1 = ax.get_legend_handles_labels()
+lines2, labels2 = axr.get_legend_handles_labels()
+ax.legend(lines1 + lines2, labels1 + labels2, loc='center right', fontsize=11)
 
 fig.tight_layout()
 fig.savefig(PLOT_FILE, dpi=150)

@@ -1,10 +1,10 @@
 * nfet_av.sp - Intrinsic gain (av = gm/gds) vs Vds at constant Id
 * Sebastian Claudiusz Magierowski Feb 7 2026
 *
-* sky130_fd_pr__nfet_01v8  W=1um L=150nm  Id=10uA
+* sky130_fd_pr__nfet_01v8  W=1um L=150nm  Id
 *
 * Feedback circuit forces Vd ≈ Vds at constant drain current:
-*   I_d sets the drain current to 10uA
+*   I_d sets the drain current to whatever you want
 *   Vds sets the drain voltage setpoint (swept)
 *   E_opamp is an ideal VCVS with gain=100 acting as an op-amp:
 *     - Non-inverting input (+) senses the drain voltage V(d)
@@ -27,7 +27,7 @@
 XM1 d g 0 0 sky130_fd_pr__nfet_01v8 W=1 L=0.15
 
 * Biasing
-I_d 0 d DC 20u
+I_d 0 d DC 32.5u
 Vds vds_set 0 DC 0.9
 E_opamp g 0 d vds_set 100
 
