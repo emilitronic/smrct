@@ -27,6 +27,8 @@ Vds d 0 DC 0.9
 .save @m.xm1.msky130_fd_pr__nfet_01v8[gds]
 .save @m.xm1.msky130_fd_pr__nfet_01v8[vth]
 .save @m.xm1.msky130_fd_pr__nfet_01v8[cgg]
+.save @m.xm1.msky130_fd_pr__nfet_01v8[vdsat]
+.save @m.xm1.msky130_fd_pr__nfet_01v8[vgsteff]
 
 * DC sweep (Vgs = Vds since diode-connected)
 .dc Vds 0.05 1.8 0.05
@@ -44,9 +46,11 @@ let vstar = 2 * id_raw / (gm + 1e-18)
 let cgg = @m.xm1.msky130_fd_pr__nfet_01v8[cgg]
 let pi = 4 * atan(1)
 let ft_GHz = gm / (cgg + 1e-30) / (2 * pi) * 1e-9
+let vdsat = @m.xm1.msky130_fd_pr__nfet_01v8[vdsat]
+let vgsteff = @m.xm1.msky130_fd_pr__nfet_01v8[vgsteff]
 set wr_singlescale
 set wr_vecnames
-wrdata gmId_data.txt vgs id_ua gm gds vth gm_id vstar ft_GHz
+wrdata gmId_data.txt vgs id_ua gm gds vth gm_id vstar ft_GHz vdsat vgsteff
 quit
 .endc
 
