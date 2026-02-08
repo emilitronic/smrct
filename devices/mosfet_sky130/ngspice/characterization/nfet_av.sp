@@ -50,9 +50,10 @@ let id_ua = @m.xm1.msky130_fd_pr__nfet_01v8[id] * 1e6
 let gm = @m.xm1.msky130_fd_pr__nfet_01v8[gm]
 let gds = @m.xm1.msky130_fd_pr__nfet_01v8[gds]
 let av = gm / gds
+let vstar = 2 * id_ua / 1e6 / (gm + 1e-18)
 set wr_singlescale
 set wr_vecnames
-wrdata av_data.txt vd vg id_ua gm gds av
+wrdata av_data.txt vd vg id_ua gm gds av vstar
 quit
 .endc
 

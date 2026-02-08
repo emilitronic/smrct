@@ -104,7 +104,7 @@ ax1r.yaxis.set_major_locator(MaxNLocator(nbins=N_TICKS_RIGHT, min_n_ticks=N_TICK
 
 lines1, labels1 = ax1.get_legend_handles_labels()
 lines2, labels2 = ax1r.get_legend_handles_labels()
-ax1.legend(lines1 + lines2, labels1 + labels2, loc='center right', fontsize=10)
+ax1.legend(lines1 + lines2, labels1 + labels2, loc='center left', fontsize=10)
 ax1.set_title(r'$g_m/I_D$ and $V^*$ vs $V_{GS}$')
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -116,15 +116,17 @@ ax2 = axes[0, 1]
 ax2.plot(vstar, id_ua, 'b-o', markersize=3, linewidth=1.5)
 ax2.set_xlabel(r'$V^*$ (mV)')
 ax2.set_ylabel(r'$I_D$ ($\mu$A)', color='b')
-ax2.set_xlim(left=0)
+ax2.set_xlim(0, 800)
+vstar_mask = vstar <= 800
+ax2.set_ylim(0, id_ua[vstar_mask].max() * 1.05)
 ax2.grid(True, alpha=0.3, which='both')
 ax2.set_title(r'$I_D$ vs $V^*$')
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  PLOT (2,1) — Lower Left: gm·ro and ro vs Vds (dual y-axis)                 ║
-# ║    Left y-axis (blue):  gm·ro in V/V    — linear scale                      ║
-# ║    Right y-axis (red):  ro in kOhm      — linear scale                      ║
-# ║    x-axis: Vds (V)      (= Vgs since diode-connected)                       ║
+# ║  PLOT (2,1) — Lower Left: gm·ro and ro vs Vds (dual y-axis)                  ║
+# ║    Left y-axis (blue):  gm·ro in V/V    — linear scale                       ║
+# ║    Right y-axis (red):  ro in kOhm      — linear scale                       ║
+# ║    x-axis: Vds (V)      (= Vgs since diode-connected)                        ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 ax3 = axes[1, 0]
 ax3.plot(vgs, gm_ro, 'b-o', markersize=3, linewidth=1.5, label=r'$g_m \cdot r_o$')
@@ -147,21 +149,21 @@ ax3r.yaxis.set_major_locator(MaxNLocator(nbins=N_TICKS_RIGHT, min_n_ticks=N_TICK
 
 lines3, labels3 = ax3.get_legend_handles_labels()
 lines3r, labels3r = ax3r.get_legend_handles_labels()
-ax3.legend(lines3 + lines3r, labels3 + labels3r, loc='center right', fontsize=10)
+ax3.legend(lines3 + lines3r, labels3 + labels3r, loc='upper right', fontsize=10)
 ax3.set_title(r'Intrinsic gain $g_m \cdot r_o$ and $r_o$ vs $V_{DS}$')
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  PLOT (2,2) — Lower Right: fT·gm/Id and fT vs V* (dual y-axis)              ║
-# ║    Left y-axis (blue):  fT·gm/Id in GHz/V — linear scale                    ║
+# ║  PLOT (2,2) — Lower Right: fT·gm/Id and fT vs V* (dual y-axis)               ║
+# ║    Left y-axis (blue):  fT·gm/Id in GHz/V — linear scale                     ║
 # ║    Right y-axis (red):  fT in GHz          — linear scale                    ║
-# ║    x-axis: V* = 2Id/gm in mV                                                ║
+# ║    x-axis: V* = 2Id/gm in mV                                                 ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 ax4 = axes[1, 1]
 ax4.plot(vstar, ft_gm_id, 'b-o', markersize=3, linewidth=1.5, label=r'$f_T \cdot g_m/I_D$')
 ax4.set_xlabel(r'$V^*$ (mV)')
 ax4.set_ylabel(r'$f_T \cdot g_m/I_D$ (GHz/V)', color='b')
 ax4.tick_params(axis='y', labelcolor='b')
-ax4.set_xlim(left=0)
+ax4.set_xlim(0, 800)
 ax4.set_ylim(bottom=0)
 ax4.yaxis.set_major_locator(MaxNLocator(nbins=N_TICKS_LEFT, min_n_ticks=N_TICKS_LEFT))
 ax4.grid(True, alpha=0.3)
