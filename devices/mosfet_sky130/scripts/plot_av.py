@@ -18,27 +18,61 @@ if not os.path.exists(DATA_FILE):
     print(f"Error: {DATA_FILE} not found. Run run_av.sh first.")
     sys.exit(1)
 
-# wrdata format with wr_singlescale + wr_vecnames:
-#   header line with vector names
-#   columns: v-sweep  vd  vg  id_ua  gm  gds  av
-data = np.loadtxt(DATA_FILE, skiprows=1)
+# Parse metadata from # key = value header lines
+metadata = {}
+with open(DATA_FILE) as f:
+    for line in f:
+        line = line.strip()
+        if line.startswith("#") and "=" in line:
+            key, val = line[1:].split("=", 1)
+            metadata[key.strip()] = val.strip()
+        elif not line.startswith("#"):
+            break
 
-vds = data[:, 0]   # sweep variable (Vds setpoint)
-vd  = data[:, 1]   # actual drain voltage
+W_um = float(metadata.get("W_um", "1"))
+L_um = float(metadata.get("L_um", "0.15"))
+Id_uA = float(metadata.get("Id_uA", "10"))
+corner = metadata.get("corner", "tt")
+source = metadata.get("source", "unknown")
+date = metadata.get("date", "unknown")
+
+print(f"Source: {source}  Date: {date}")
+print(f"W = {W_um} um,  L = {L_um} um,  Id = {Id_uA} uA,  corner = {corner}")
+
+# Data columns: v-sweep  vd  vg  id_ua  gm  gds  av
+# Skip comment lines (#) and the wrdata vector-names header (starts with text)
+rows = []
+with open(DATA_FILE) as f:
+    for line in f:
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        try:
+            rows.append([float(x) for x in line.split()])
+        except ValueError:
+            continue  # skip wrdata header line (v-sweep vd vg ...)
+data = np.array(rows)
+
+vds = data[:, 0]
+vd  = data[:, 1]
 vg  = data[:, 2]
 id_ua = data[:, 3]
 gm  = data[:, 4]
 gds = data[:, 5]
 av  = data[:, 6]
 
+# Format L for display: use nm if < 1um
+L_str = f"{L_um*1000:.0f}\\,nm" if L_um < 1 else f"{L_um:.1f}\\,\\mu m"
+
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.plot(vds, av, 'b-o', markersize=4, linewidth=1.5)
 ax.set_xlabel(r'$V_{DS}$ (V)', fontsize=13)
 ax.set_ylabel(r'Intrinsic Gain $a_v = g_m / g_{ds}$ (V/V)', fontsize=13)
-ax.set_title(r'sky130 nfet_01v8   $W = 1\,\mu m$,  $L = 150\,nm$,  $I_D = 20\,\mu A$',
-             fontsize=12)
+ax.set_title(
+    rf'sky130 nfet_01v8   $W = {W_um:.0f}\,\mu m$,  $L = {L_str}$,  $I_D = {Id_uA:.0f}\,\mu A$',
+    fontsize=12)
 ax.grid(True, alpha=0.3)
-ax.set_xlim(0.0, 1.8)
+ax.set_xlim(vds.min(), vds.max())
 
 fig.tight_layout()
 fig.savefig(PLOT_FILE, dpi=150)

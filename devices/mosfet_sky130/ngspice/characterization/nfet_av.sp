@@ -29,7 +29,7 @@ XM1 d g 0 0 sky130_fd_pr__nfet_01v8 W=1 L=0.15
 * Biasing
 I_d 0 d DC 20u
 Vds vds_set 0 DC 0.9
-E_opamp g 0 d vds_set 90
+E_opamp g 0 d vds_set 100
 
 * Save MOSFET operating point params as vectors across the DC sweep
 * (.save directives required BEFORE .dc so ngspice records gm/gds as vectors at each
