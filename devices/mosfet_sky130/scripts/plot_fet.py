@@ -10,6 +10,7 @@ import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 from matplotlib.ticker import MaxNLocator
 
 # Number of major ticks on left and right y-axes (for dual-axis plots)
@@ -18,6 +19,8 @@ N_TICKS_RIGHT = 5
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DEVICE_DIR = os.path.dirname(SCRIPT_DIR)
+REPO_DIR = os.path.dirname(os.path.dirname(DEVICE_DIR))
+WATERMARK_FILE = os.path.join(REPO_DIR, "docs", "emil_tran.png")
 GMID_DATA_FILE = os.path.join(DEVICE_DIR, "results", "gmId", "gmId_data.txt")
 AV_DATA_FILE = os.path.join(DEVICE_DIR, "results", "av", "av_data.txt")
 PLOT_FILE = os.path.join(DEVICE_DIR, "results", "fet_summary.png")
@@ -212,6 +215,14 @@ ax4.set_title(r'$f_T \cdot g_m/I_D$ and $f_T$ vs $V^*$')
 
 fig.suptitle(suptitle, fontsize=13, y=0.99)
 fig.tight_layout()
+
+# Overlay watermark (light gray, centered behind plots)
+if os.path.exists(WATERMARK_FILE):
+    wm_img = mpimg.imread(WATERMARK_FILE)
+    wm_ax = fig.add_axes([0.1, 0.15, 0.75, 0.75], anchor='C', zorder=10)
+    wm_ax.imshow(wm_img, alpha=0.08)
+    wm_ax.axis('off')
+
 os.makedirs(os.path.dirname(PLOT_FILE), exist_ok=True)
 fig.savefig(PLOT_FILE, dpi=150)
 print(f"Plot saved to {PLOT_FILE}")
