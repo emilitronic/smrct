@@ -96,6 +96,12 @@ Merges data from both `gmId_data.txt` and `av_data.txt` into a single 2x2 grid:
 conda activate mytorch && python3 scripts/plot_fet.py
 ```
 
+Example output (sky130 nfet_01v8, W=1um, L=150nm, TT corner):
+
+<p align="left">
+  <img src="../../docs/fet_summary_example.png" width="400" />
+</p>
+
 ## Metadata Pipeline
 
 The runner scripts (`run_av.sh`, `run_gmId.sh`) parse W, L, device name, and other
@@ -103,3 +109,9 @@ parameters from the netlist using grep, then prepend `# key = value` header line
 to the ngspice wrdata output. The Python plot scripts read these headers to
 automatically set plot titles and labels — changing W/L/Id in the netlist
 propagates to the plots without editing the Python code.
+
+## TODO
+
+- Expand to SS and FF corners
+- Add more L points (e.g., L=300 and 450 nm)
+- Add PMOS characterization
