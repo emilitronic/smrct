@@ -81,7 +81,7 @@ ax1.yaxis.set_major_locator(MaxNLocator(nbins=N_TICKS_LEFT, min_n_ticks=N_TICKS_
 ax1.grid(True, alpha=0.3)
 
 ax2 = ax1.twinx()
-ax2.plot(vgs, vstar, 'r-s', markersize=3, linewidth=1.5, label=r'$V^*$')
+ax2.plot(vgs, vstar, 'r-o', markersize=3, linewidth=1.5, label=r'$V^*$')
 ax2.set_ylabel(r'$V^* = 2I_D/g_m$ (mV)', fontsize=13, color='r')
 ax2.tick_params(axis='y', labelcolor='r')
 ax2.set_ylim(bottom=0)
