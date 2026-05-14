@@ -39,11 +39,11 @@ include "../../netlist/nanopore.scs"
 parameters \
     Vclk_hi=1.0  Ki=0.8                     \
     Cf=20f  Ci=5p  Cl=1f                    \
-    Ravg=2.25G  Rp=1  Ra=1  gv=0.5  Cm=1f  \
+    Ravg=2.25G  Rp=1  Ra=1  gv=0.5  Cm=1f   \
     Vbias=600m  Vref=800m                   \
     ft=1k  Tp=1/ft                          \
-    Ts=1/(2*ft)                             \
-    samples=65536  fsamp=25*ft              \
+    Ts=1/(4*ft)                             \
+    samples=65536  fsamp=50*ft              \
     samptime=samples/fsamp                  \
     tstop=1.05*samptime  tstep=1/fsamp
 

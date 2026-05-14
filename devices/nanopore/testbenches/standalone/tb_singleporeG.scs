@@ -41,12 +41,12 @@ include "../../netlist/nanopore.scs"
 // current PSD can be compared directly to the Lorentzian prediction for
 // a random telegraph signal.
 parameters \
-    Cf=1f  Ci=1p  Cl=1p  Rf=1G         \
+    Cf=1f  Ci=1p  Cl=1p  Rf=1G             \
     Ravg=2.25G  Rp=1  Ra=1  gv=0.5  Cm=5p  \
-    Vbias=600m  Vref=800m               \
-    ft=1k  Tp=1/ft                      \
-    fsamp=50*ft  samples=65536          \
-    samptime=samples/fsamp              \
+    Vbias=600m  Vref=800m                  \
+    ft=1k  Tp=1/ft                         \
+    fsamp=50*ft  samples=65536             \
+    samptime=samples/fsamp                 \
     tstop=1.05*samptime  tstep=1/fsamp
 
 // -----------------------------------------------------------------------
