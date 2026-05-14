@@ -183,29 +183,39 @@ def plot_time_zoom(t, ipore, vout, clk, out_dir):
     print(f"Saved {path}")
 
 
-def plot_psd(ipore, out_dir):
+def plot_psd(ipore, vout, out_dir):
     ip      = ipore[SKIP:]
+    vo      = vout[SKIP:]
     sigma_I = np.std(ip)
+    sigma_V = np.std(vo)
     print(f"  IporeStdDev_pA : {sigma_I*1e12:.3f} pA")
+    print(f"  Vout1StdDev    : {sigma_V*1e3:.3f} mV")
 
     f_I, S_I = welch(ip / sigma_I, fs=FSAMP, window='boxcar', nperseg=WINSIZE, detrend=False)
+    f_V, S_V = welch(vo / sigma_V, fs=FSAMP, window='boxcar', nperseg=WINSIZE, detrend=False)
     norm_I_dB = 20 * np.log10((FT/2) * S_I + 1e-30)
+    norm_V_dB = 20 * np.log10((FT/2) * S_V + 1e-30)
 
     f_th    = np.logspace(np.log10(f_I[1]), np.log10(FSAMP/2), 2000)
     S_th_dB = 20 * np.log10(1.0 / (1 + (np.pi * f_th / FT)**2))
 
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.semilogx(f_I[1:], norm_I_dB[1:], lw=0.8, label="Simulation")
-    ax.semilogx(f_th, S_th_dB, 'r--', lw=1.5, label="Lorentzian theory")
-    ax.axvline(FT/np.pi, color='gray', ls=':', lw=1,
-               label=f"Corner ft/π = {FT/np.pi:.0f} Hz")
-    ax.set_xlabel("Frequency (Hz)")
-    ax.set_ylabel("Normalised PSD  dB20(ft · S_two / σ²)")
-    ax.set_title("Pore current — normalised PSD  (Nanopore + DT TIA)")
-    ax.set_xlim(f_I[1], FSAMP/2)
-    ax.set_ylim(-60, 20)
-    ax.legend(fontsize=8)
-    ax.grid(True, which='both', ls=':')
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    for ax, f_sim, S_dB, label in [
+        (axes[0], f_I, norm_I_dB, "Pore current"),
+        (axes[1], f_V, norm_V_dB, "TIA output"),
+    ]:
+        ax.semilogx(f_sim[1:], S_dB[1:], lw=0.8, label="Simulation")
+        ax.semilogx(f_th, S_th_dB, 'r--', lw=1.5, label="Lorentzian theory")
+        ax.axvline(FT/np.pi, color='gray', ls=':', lw=1,
+                   label=f"Corner ft/π = {FT/np.pi:.0f} Hz")
+        ax.set_xlabel("Frequency (Hz)")
+        ax.set_ylabel("Normalised PSD  dB20(ft · S_two / σ²)")
+        ax.set_title(f"{label} — normalised PSD  (Nanopore + DT TIA)")
+        ax.set_xlim(f_I[1], FSAMP/2)
+        ax.set_ylim(-60, 20)
+        ax.legend(fontsize=8)
+        ax.grid(True, which='both', ls=':')
 
     fig.tight_layout(rect=[0, 0.10, 1, 1])
     fig.text(0.01, 0.01, _param_text(_p), fontsize=7.5, va='bottom', ha='left',
@@ -229,7 +239,7 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     plot_time(t, ipore, vout, clk, OUT_DIR)
     plot_time_zoom(t, ipore, vout, clk, OUT_DIR)
-    plot_psd(ipore, OUT_DIR)
+    plot_psd(ipore, vout, OUT_DIR)
 
 
 if __name__ == "__main__":
