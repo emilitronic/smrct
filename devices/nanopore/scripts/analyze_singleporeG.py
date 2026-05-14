@@ -44,7 +44,8 @@ _SPECTRE_SUFFIXES = {
     'm': 1e-3,  'k': 1e3,   'M': 1e6,  'G': 1e9,  'T': 1e12,
 }
 
-
+# Reads .scs file and returns a Python dict of all parameter values
+# e.g., {'Vclk_hi': 1.0, 'Ki': 0.8, 'Cf': 2e-14, 'Ci': 5e-12, ...,}
 def parse_spectre_params(scs_path):
     """Return dict of floats from all 'parameters' lines in a Spectre netlist."""
     with open(scs_path) as fh:
@@ -102,7 +103,8 @@ def _si(val, unit=''):
             return f"{val/thr:g} {pre}{unit}".rstrip()
     return f"{val:g}{' '+unit if unit else ''}"
 
-
+# Formats selected entries from parse_spectre_params dict into two-line
+# annotation string that gets printed in the SW corner of each plot.
 def _param_text(p):
     return (
         f"ft={_si(p['ft'],'Hz')}  Ravg={_si(p['Ravg'],'Ω')}  gv={p['gv']:g}  "

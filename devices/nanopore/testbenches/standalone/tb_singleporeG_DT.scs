@@ -64,7 +64,7 @@ AMporeout (out amp_inp) vsource mag=0 type=dc
 // DT TIA: ideal op-amp (VCVS) + Cf feedback + sw_no reset + Ci/Cl parasitics
 // -----------------------------------------------------------------------
 OpAmp  (net034 0 iplus amp_inp) vcvs gain=1e6
-Iprobe (net034 out1)          iprobe
+Iprobe (net034 out1)                      iprobe
 Cf     (amp_inp out1)         capacitor c=Cf
 SWrst  (amp_inp out1 clk)     sm_sw_no vth=0.5 ron=1 roff=1e12 \
     tconv=0 trise=1n tfall=1n slack=1n vtol=10m
