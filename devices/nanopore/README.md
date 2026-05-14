@@ -49,6 +49,7 @@ cd devices/nanopore/scripts
 ./run_iv.sh           && python3 analyze_iv.py
 ./run_tran.sh         && python3 analyze_tran.py
 ./run_singleporeG.sh  && python3 analyze_singleporeG.py
+./run_singleporeG_DT.sh && python3 analyze_singleporeG_DT.py
 ```
 
 Results and plots land in `results/standalone/{iv,tran,singleporeG}/`.
