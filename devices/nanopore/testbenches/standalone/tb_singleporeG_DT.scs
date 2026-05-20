@@ -4,15 +4,24 @@
 // Derived from original Virtuoso tb_singleporeG_DT schematic (Aug 2024).
 // Vestigial schematic probes (Vsquare, Vsin, Vramp, sw1, Rbias, R0) removed.
 //
-// Topology: same pore as tb_singleporeG.scs, but the CT feedback resistor Rf is
-// replaced by a DT reset switch (sm_sw_no) in parallel with Cf (integrate-and-dump):
+// Topology: same pore as tb_singleporeG.scs, but the continuous-time (CT) feedback 
+// resistor Rf is replaced by a discrete-time (DT) reset switch (sm_sw_no) in parallel 
+// with Cf (integrate-and-dump):
 //
-//   Reset  phase (clk=Vclk_hi, duration (1-Ki)*Ts): sw closes, Cf discharged, out1→Vref
-//   Integrate phase (clk=0,    duration Ki*Ts):      sw open, Ipore integrates onto Cf,
+// Reset  phase (clk=Vclk_hi, duration (1-Ki)*Ts): sw closes, Cf discharged, out1→Vref
+// Integrate phase (clk=0,    duration Ki*Ts):      sw open, Ipore integrates onto Cf,
 //     out1 ramps by ΔV = −Ipore·Ki·Ts/Cf
 //
-//                 ,------Cf------,
-//                 |--SWrst(clk)--|
+// (1-Ki)*Ts ->  <- (reset phase)
+//             <----- Ts ----->  
+//                <---- Ti --->  (integration time, Ti=Ki·Ts)
+//             ,-,             ,-,
+//             | |             | |
+//  -----------' '-------------' '-------
+//
+// Vclk -------------------,
+//                 ,---- SWrst ---,
+//                 |----- Cf -----|
 // Vctrl ----,     |              |
 // Vbias -- PORE1 --- -OpAmp \    |
 //                 |          \   |
