@@ -1,0 +1,32 @@
+// Ideal switch (hard V=0 / I=0 toggle)
+// Sebastian Claudiusz Magierowski — original SM_ROIC, smrct port May 20 2026
+//
+// WARNING: this model forces V(p,n)=0 as a hard voltage source when closed.
+// A charged capacitor on p or n will be discharged instantaneously, causing
+// the solver to attempt infinite current — likely leading to convergence
+// failure or timestep collapse.  Use sm_sw_no instead: it provides finite
+// ron/roff with a logarithmic transition and is safe with capacitive loads.
+//
+// This file is retained for reference only.
+//
+// Ports:
+//   p, n   — switched path (inout)
+//   pc, nc — differential control (input); closes when V(pc,nc) > thresh
+
+`include "discipline.h"
+`include "constants.h"
+
+module sm_ideal_sw(p, n, pc, nc);
+  input    pc, nc;
+  inout    p, n;
+  electrical p, n, pc, nc;
+
+  parameter real thresh = 0.5;  // control threshold [V]
+
+  analog begin
+    if (V(pc, nc) > thresh)
+      V(p, n) <+ 0.0;
+    else
+      I(p, n) <+ 0.0;
+  end
+endmodule

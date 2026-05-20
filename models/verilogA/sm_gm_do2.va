@@ -1,0 +1,65 @@
+// Differential Gm-cell with supply current and soft output limiting
+// Sebastian Claudiusz Magierowski — original Nov 14 2017, smrct port May 20 2026
+//
+// Derived from SM_ROIC/gm_do2.  Preferred over sm_gm_do when supply current
+// modelling or output rail-limiting behaviour is needed.
+//
+// Key difference from sm_gm_do:
+//   - vref port separates the output-limiting reference from vss
+//   - Supply current I(vdd,vss) = Gm/EFF is active
+//   - Soft output limiting via 0.1*Gm conductance near rails
+//   - Dominant pole is differential V(vop,von) — avoids DC operating-point
+//     issues with large output bias resistors
+//
+// Ports:
+//   vop, von  — differential output
+//   vip, vin  — differential input
+//   vdd, vss  — supply rails
+//   vref      — reference for soft output limiting (often = vss or mid-supply)
+
+`include "discipline.h"
+`include "constants.h"
+
+`define TWOPI 6.28318530718
+
+module sm_gm_do2(vop, von, vip, vin, vdd, vss, vref);
+  input  vdd, vss, vref;
+  inout  vop, von, vip, vin;
+  electrical vop, von, vip, vin, vdd, vss, vref;
+
+  parameter real GBW       = 1e6    from (0:inf);  // gain-bandwidth product [Hz]
+  parameter real gain      = 100    from (0:inf);  // low-frequency gain []
+  parameter real EFF       = 10     from (0:inf);  // gm/Id efficiency [V^-1]
+  parameter real Rin       = 1e6    from (0:inf);  // input resistance [Ohm]
+  parameter real Vin_off   = 0.0;                  // input offset voltage [V]
+  parameter real Iout_max  = 100e-6 from (0:inf);  // slew-limit current [A]
+  parameter real slew_rate = 0.5e6  from (0:inf);  // slew rate [V/s]
+  parameter real Vsoft     = 0.01   from (0:inf);  // soft-limiting margin [V]
+
+  real Cout, Gm, Rout, Vin_max, Vin;
+
+  analog begin
+    @(initial_step or initial_step("dc")) begin
+      Cout    = Iout_max / slew_rate;
+      Gm      = `TWOPI * GBW * Cout;
+      Rout    = gain / Gm;
+      Vin_max = Iout_max / Gm;
+    end
+
+    Vin = V(vip, vin) + Vin_off;
+    I(vip, vin) <+ (V(vip, vin) + Vin_off) / Rin;
+    I(vdd, vss) <+ Gm / EFF;
+
+    if      (Vin >  Vin_max) I(von, vop) <+  Iout_max;
+    else if (Vin < -Vin_max) I(vop, von) <+  Iout_max;
+    else                     I(von, vop) <+  Gm * Vin;
+
+    I(vop, von) <+ ddt(Cout * V(vop, von));
+    I(vop, von) <+ V(vop, von) / Rout;
+
+    if      (V(vop, vref) >  (V(vdd) - Vsoft)) I(vop, vref) <+  0.1*Gm*(Vsoft - V(vdd, vop));
+    else if (V(vop, vref) < -(V(vss) + Vsoft)) I(vref, vop) <+  0.1*Gm*(Vsoft - V(vop, vss));
+    if      (V(von, vref) >  (V(vdd) - Vsoft)) I(von, vref) <+  0.1*Gm*(Vsoft - V(vdd, von));
+    else if (V(von, vref) < -(V(vss) + Vsoft)) I(vref, von) <+  0.1*Gm*(Vsoft - V(von, vss));
+  end
+endmodule

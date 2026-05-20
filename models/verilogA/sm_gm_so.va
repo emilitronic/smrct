@@ -1,0 +1,66 @@
+// Single-ended Gm-cell with internal dominant-pole node
+// Sebastian Claudiusz Magierowski — original Nov 16 2017, smrct port May 20 2026
+//
+// Derived from SM_ROIC/gm_so.  Used in the DT-integrator TIA (tb_TIA1).
+//
+// The dominant pole is modelled on an internal node (cout) separate from the
+// output port.  A 1-Ohm output stage copies V(cout,vref) to vo — this makes
+// vo a stiff (near-ideal voltage) output.  Do not connect a hard voltage source
+// directly to vo.
+//
+// Ports:
+//   vo        — single-ended output (stiff; driven through Ro=1 Ohm)
+//   vip, vin  — differential input
+//   vdd, vss  — supply rails
+//   vref      — output quiescent reference (vo rests at vref for zero input)
+
+`include "discipline.h"
+`include "constants.h"
+
+`define TWOPI 6.28318530718
+
+module sm_gm_so(vo, vip, vin, vdd, vss, vref);
+  input  vdd, vss, vref;
+  inout  vo, vip, vin;
+  electrical vo, vip, vin, vdd, vss, vref;
+
+  parameter real GBW       = 1e6    from (0:inf);  // gain-bandwidth product [Hz]
+  parameter real gain      = 100    from (0:inf);  // low-frequency gain []
+  parameter real EFF       = 10     from (0:inf);  // gm/Id efficiency [V^-1]
+  parameter real Rin       = 1e6    from (0:inf);  // input resistance [Ohm]
+  parameter real Vin_off   = 0.0;                  // input offset voltage [V]
+  parameter real Iout_max  = 100e-6 from (0:inf);  // slew-limit current [A]
+  parameter real slew_rate = 0.5e6  from (0:inf);  // slew rate [V/s]
+  parameter real Vsoft     = 0.01   from (0:inf);  // soft-limiting margin [V]
+
+  real Cout, Gm, Rout, Vin_max, Vin, Ro;
+  electrical cout;  // internal dominant-pole node
+
+  analog begin
+    @(initial_step or initial_step("dc")) begin
+      Cout    = Iout_max / slew_rate;
+      Gm      = `TWOPI * GBW * Cout;
+      Rout    = gain / Gm;
+      Vin_max = Iout_max / Gm;
+      Ro      = 1;
+    end
+
+    Vin = V(vip, vin) + Vin_off;
+    I(vip, vin) <+ (V(vip, vin) + Vin_off) / Rin;
+    I(vdd, vss) <+ Gm / EFF;
+
+    if      (Vin >  Vin_max) I(vref, cout) <+  Iout_max;
+    else if (Vin < -Vin_max) I(cout, vref) <+  Iout_max;
+    else                     I(vref, cout) <+  Gm * Vin;
+
+    I(cout, vref) <+ ddt(Cout * V(cout, vref));
+    I(cout, vref) <+ V(cout, vref) / Rout;
+
+    // Output stage: copies V(cout,vref) to vo through Ro
+    I(vref, vo) <+ V(cout, vref) / Ro;
+    I(vo, vref) <+ V(vo, vref) / Ro;
+
+    if      (V(vo) > (V(vdd) - Vsoft)) I(cout, vss) <+ (Vsoft - V(vdd, vo)) / Ro;
+    else if (V(vo) < (V(vss) + Vsoft)) I(vss, cout) <+ (Vsoft - V(vo, vss)) / Ro;
+  end
+endmodule
