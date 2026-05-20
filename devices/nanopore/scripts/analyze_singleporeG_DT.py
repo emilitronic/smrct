@@ -226,6 +226,58 @@ def plot_psd(ipore, vout, out_dir):
     plt.close(fig)
     print(f"Saved {path}")
 
+# EOI: end of integration (just before reset)
+def plot_psd_eoi(t, vout, clk, out_dir):
+    """PSD of end-of-integration samples — one per clock cycle, taken just before reset.
+
+    Detects each rising edge of clk (integrate→reset transition) and samples vout
+    at the index immediately before it.  The resulting sequence has rate fclk=1/Ts
+    and contains no deterministic sawtooth component, so σ² reflects only the random
+    Ipore signal and the DC normalised PSD should align with the Lorentzian theory.
+    """
+    vth = 0.5
+    rising_idx = np.where((clk[:-1] < vth) & (clk[1:] >= vth))[0]
+    rising_idx = rising_idx[t[rising_idx] > t[SKIP]]  # skip settling period
+
+    vout_eoi = vout[rising_idx]
+    fclk     = 1.0 / _p['Ts']
+    n_eoi    = len(vout_eoi)
+    winsize  = max(n_eoi // 32, 4)
+
+    sigma_V = np.std(vout_eoi)
+    print(f"  Vout_EOI StdDev : {sigma_V*1e3:.3f} mV  ({n_eoi} EOI samples at {_si(fclk,'Hz')})")
+
+    f_V, S_V  = welch(vout_eoi / sigma_V, fs=fclk, window='boxcar',
+                      nperseg=winsize, detrend=False)
+    norm_V_dB = 20 * np.log10((FT/2) * S_V + 1e-30)
+
+    f_th    = np.logspace(np.log10(f_V[1]), np.log10(fclk/2), 2000)
+    S_th_dB = 20 * np.log10(1.0 / (1 + (np.pi * f_th / FT)**2))
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.semilogx(f_V[1:], norm_V_dB[1:], lw=0.8, label="Simulation (EOI samples)")
+    ax.semilogx(f_th, S_th_dB, 'r--', lw=1.5, label="Lorentzian theory")
+    ax.axvline(FT/np.pi, color='gray', ls=':', lw=1,
+               label=f"Corner ft/π = {FT/np.pi:.0f} Hz")
+    ax.set_xlabel("Frequency (Hz)")
+    ax.set_ylabel("Normalised PSD  dB20(ft · S_two / σ²)")
+    ax.set_title(
+        f"TIA output — EOI-sampled PSD  (fclk={_si(fclk,'Hz')}, {n_eoi} samples)"
+    )
+    ax.set_xlim(f_V[1], fclk/2)
+    ax.set_ylim(-60, 20)
+    ax.legend(fontsize=8)
+    ax.grid(True, which='both', ls=':')
+
+    fig.tight_layout(rect=[0, 0.10, 1, 1])
+    fig.text(0.01, 0.01, _param_text(_p), fontsize=7.5, va='bottom', ha='left',
+             family='monospace', color='0.35')
+    _add_watermark(fig)
+    path = os.path.join(out_dir, "singleporeG_DT_psd_eoi.png")
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    print(f"Saved {path}")
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -240,6 +292,7 @@ def main():
     plot_time(t, ipore, vout, clk, OUT_DIR)
     plot_time_zoom(t, ipore, vout, clk, OUT_DIR)
     plot_psd(ipore, vout, OUT_DIR)
+    plot_psd_eoi(t, vout, clk, OUT_DIR)
 
 
 if __name__ == "__main__":
