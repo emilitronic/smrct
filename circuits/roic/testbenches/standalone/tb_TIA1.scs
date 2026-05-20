@@ -1,0 +1,85 @@
+// ROIC DT Integrator TIA Testbench
+// Sebastian Claudiusz Magierowski — original May 15 2023, standalone port May 20 2026
+//
+// Derived from SM_ROIC/tb_TIA1/schematic (Cadence IC06.18.020).
+//
+// Topology: sm_gm_so-based integrate-and-dump TIA.
+//   Reset phase  (clk > vth=0.8V, duration (1-Ki)*Ts): SWrst closes, Cf shorted,
+//     opTIA and ipTIA both settle to ~700 mV (virtual ground = Vtrans).
+//   Integrate phase (clk = 0, duration Ki*Ts): SWrst open, Ii2 drains current
+//     from ipTIA, gm_so integrates charge onto Cf, opTIA ramps upward.
+//
+//                ,------Cf------|
+//                |--SWrst(clk)--|
+//                |              |
+// Ii2 ----,      |              |
+// Cm -- ipTIA --- -gm_so \      |
+//                |        \     |
+//                         X -- opTIA -- Cload
+//                        /
+// Vtrans -- + gm_so /
+// (net7=700mV)
+//
+// Key bias: Vtrans=700mV sets virtual ground; Vop=900mV sets output quiescent.
+// Current convention: Ii2 drains current from ipTIA → output swings upward.
+//
+// Key design variables:
+//   Integrator : Cf, Cm, Ki
+//   Clock      : fs (period Ts=1/fs)
+//   Bias       : Vdd, Vtrans (virtual gnd ref), Vop (output quiescent)
+//   Stimulus   : PWL current ramp 0→200pA (Ts/10 to Ts), constant 200pA after
+
+simulator lang=spectre
+global 0 vdd!
+
+ahdl_include "../../../../models/verilogA/sm_gm_so.va"
+ahdl_include "../../../../models/verilogA/sm_sw_no.va"
+
+// -----------------------------------------------------------------------
+// Parameters
+// -----------------------------------------------------------------------
+parameters \
+    Cm=5p  Cf=20f  Ki=625m              \
+    fs=1k  Ts=1/fs  stopTime=10*Ts      \
+    Vdd=1.5  Vtrans=700m  Vop=900m
+
+// -----------------------------------------------------------------------
+// Supply and bias sources
+// -----------------------------------------------------------------------
+Vdd1   (vdd! 0)  vsource dc=Vdd    type=dc
+Vtrans (net7 0)  vsource dc=Vtrans type=dc
+Vop    (net019 0) vsource dc=Vop   type=dc
+
+// -----------------------------------------------------------------------
+// Input current: ramps from 0 to 200 pA between Ts/10 and Ts, constant after
+// -----------------------------------------------------------------------
+Ii2 (0 ipTIA) isource type=pwl wave=[ (Ts/10) 0 Ts -200p ]
+
+// -----------------------------------------------------------------------
+// DT integrator: gm_so + Cf + reset switch + parasitics
+// -----------------------------------------------------------------------
+Cm1    (ipTIA 0)         capacitor c=Cm
+Cf1    (opTIA ipTIA)     capacitor c=Cf
+Cload  (opTIA 0)         capacitor c=1f
+Gm1    (opTIA net7 ipTIA vdd! 0 net019) sm_gm_so \
+    GBW=10M gain=50 EFF=10 Rin=1e16 Vin_off=0 \
+    Iout_max=200u slew_rate=10e6 Vsoft=0.1
+SWrst  (ipTIA opTIA clk) sm_sw_no vth=0.8 ron=1 roff=10G \
+    tconv=0 trise=1n tfall=1n slack=1n vtol=10m
+
+// -----------------------------------------------------------------------
+// Reset clock: high = reset (SWrst closed), low = integrate
+// -----------------------------------------------------------------------
+Vclk (clk 0) vsource type=pulse val0=0 val1=Vdd \
+    period=Ts delay=Ts/10 rise=Ts/100 fall=Ts/100 width=(1-Ki)*Ts
+
+// -----------------------------------------------------------------------
+// Simulation
+// -----------------------------------------------------------------------
+simulatorOptions options reltol=1e-3 vabstol=1e-6 iabstol=1e-12 \
+    temp=27 tnom=27 maxnotes=5 maxwarns=5
+
+tran1 tran stop=stopTime errpreset=conservative annotate=status
+
+save opTIA ipTIA clk
+saveOptions options save=selected
