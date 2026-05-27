@@ -11,17 +11,21 @@
 //
 // Small-signal equivalent:
 //
-//                Rin                           ┌── Rout ──┐
-//  vip ──────────/\/\/──────────── vin  vop ───┤          ├──── von
-//                                        │     └── Cout ──┘    │
-//                                        └─── Gm·V(vip,vin) ───┘
-//                                       (von→vop; slew ±Iout_max)
+//           Rin                               ┌── Rout ──┐
+//        ┌──/\/\/──┐                          │          │
+//  vip ──┤         ├── vin   vop ─────────────┤          ├──── von
+//        └───║─────┘                   │      └── Cout ──┘    │
+//           Cin                        └──── Gm·V(vip,vin) ───┘
+//                                           (von→vop; slew ±Iout_max)
+//
+//  Cin = 0 when fT = 1e30 (default); set fT to device transit freq to activate.
 //
 // Parameters derived at initial_step:
 //   Cout = Iout_max / slew_rate
 //   Gm   = 2π · GBW · Cout
 //   Rout = gain / Gm
 //   Vin_max = Iout_max / Gm   (input range before slewing)
+//   Cin  = Gm / (2π · fT)    (→ 0 for default fT=1e30)
 
 `include "discipline.h"
 `include "constants.h"
@@ -40,8 +44,9 @@ module sm_gm_do(vop, von, vip, vin, vdd, vss);
   parameter real Vin_off   = 0.0;                  // input offset voltage [V]
   parameter real Iout_max  = 100e-6 from (0:inf);  // slew-limit current [A]
   parameter real slew_rate = 0.5e6  from (0:inf);  // slew rate [V/s]
+  parameter real fT        = 1e30   from (0:inf);  // device transit freq [Hz]; 1e30 → Cin≈0
 
-  real Cout, Gm, Rout, Vin_max, Vin;
+  real Cout, Cin, Gm, Rout, Vin_max, Vin;
 
   analog begin
     @(initial_step or initial_step("dc")) begin
@@ -49,10 +54,12 @@ module sm_gm_do(vop, von, vip, vin, vdd, vss);
       Gm      = `TWOPI * GBW * Cout;
       Rout    = gain / Gm;
       Vin_max = Iout_max / Gm;
+      Cin     = Gm / (`TWOPI * fT);
     end
 
     Vin = V(vip, vin) + Vin_off;
     I(vip, vin) <+ (V(vip, vin) + Vin_off) / Rin;
+    I(vip, vin) <+ ddt(Cin * V(vip, vin));
 
     if      (Vin >  Vin_max) I(von, vop) <+  Iout_max;
     else if (Vin < -Vin_max) I(vop, von) <+  Iout_max;
