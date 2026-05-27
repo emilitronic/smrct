@@ -15,7 +15,7 @@
 //  vip ──────────/\/\/──────────── vin  vop ───┤          ├──── von
 //                                        │     └── Cout ──┘    │
 //                                        └─── Gm·V(vip,vin) ───┘
-//                                             (von→vop; slew ±Iout_max)
+//                                       (von→vop; slew ±Iout_max)
 //
 // Parameters derived at initial_step:
 //   Cout = Iout_max / slew_rate

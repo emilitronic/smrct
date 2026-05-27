@@ -13,6 +13,26 @@
 //   vip, vin  — differential input
 //   vdd, vss  — supply rails
 //   vref      — output quiescent reference (vo rests at vref for zero input)
+//
+// Small-signal equivalent:
+//
+//                Rin
+//  vip ──────────/\/\/──────────── vin
+//
+//                          ┌──────── Rout ───────┐
+//               vref ──────┤──────── Cout ──── cout ──── Ro ──────────── vo
+//                          └─── Gm·V(vip,vin) ──►┘    (internal) (1 Ω)
+//                         (vref→cout; slew ±Iout_max)
+//
+// Parameters derived at initial_step:
+//   Cout = Iout_max / slew_rate
+//   Gm   = 2π · GBW · Cout
+//   Rout = gain / Gm
+//   Vin_max = Iout_max / Gm   (input range before slewing)
+//
+// Additional (not in picture):
+//   Supply current: I(vdd,vss) = Gm/EFF
+//   Soft limiting:  clamps vo to [vss+Vsoft, vdd−Vsoft]
 
 `include "discipline.h"
 `include "constants.h"
