@@ -16,6 +16,18 @@
 //   vip, vin  — differential input
 //   vdd, vss  — supply rails
 //   vref      — reference for soft output limiting (often = vss or mid-supply)
+//
+// Small-signal equivalent (same as sm_gm_do):
+//
+//                Rin                           ┌── Rout ──┐
+//  vip ──────────/\/\/──────────── vin  vop ───┤          ├──── von
+//                                        │     └── Cout ──┘    │
+//                                        └─── Gm·V(vip,vin) ───┘
+//                                             (von→vop; slew ±Iout_max)
+//
+// Additional (not in small-signal picture):
+//   Supply current: I(vdd,vss) = Gm/EFF
+//   Soft limiting:  0.1·Gm conductance clamps vop, von to [vref±(vdd−Vsoft)]
 
 `include "discipline.h"
 `include "constants.h"

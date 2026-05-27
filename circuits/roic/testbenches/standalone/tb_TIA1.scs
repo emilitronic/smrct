@@ -9,15 +9,15 @@
 //   Integrate phase (clk = 0, duration Ki*Ts): SWrst open, Ii2 drains current
 //     from ipTIA, gm_so integrates charge onto Cf, opTIA ramps upward.
 //
-//                ,------Cf------|
-//                |--SWrst(clk)--|
-//                |              |
-// Ii2 ----,      |              |
-// Cm -- ipTIA --- -gm_so \      |
-//                |        \     |
-//                         X -- opTIA -- Cload
-//                        /
-// Vtrans -- + gm_so /
+//                 ,------ SWrst -----,
+//                 |------- Cf -------|
+//                 |                  |
+//                 |                  |
+// Ii2 -- (ipTIA) --- -gm_so \        |
+//                 |         \        |
+//                Cm1         X -- (opTIA) -- Cload
+//                           /
+// Vtrans --         +gm_so /
 // (net7=700mV)
 //
 // Key bias: Vtrans=700mV sets virtual ground; Vop=900mV sets output quiescent.
